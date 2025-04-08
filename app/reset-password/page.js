@@ -1,25 +1,33 @@
 "use client"
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Lock, User } from "lucide-react"
+import { Eye, EyeOff, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import Image from "next/image"
-import { loginUser } from "@/lib/auth"
+import { resetPassword } from "@/lib/auth"
 import { toast } from "sonner"
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    studentId: "",
-    password: ""
+    password: "",
+    confirmPassword: ""
   })
+
+  const token = searchParams.get("token")
+
+  useEffect(() => {
+    if (!token) {
+      toast.error("Token manquant")
+      router.push("/login")
+    }
+  }, [token, router])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -33,20 +41,22 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { user, userData } = await loginUser(formData.studentId, formData.password)
-      toast.success("Connexion réussie !")
-      router.push("/dashboard")
+      await resetPassword(token, formData.password)
+      toast.success("Mot de passe mis à jour avec succès")
+      router.push("/login")
     } catch (error) {
-      console.error("Erreur de connexion:", error)
-      toast.error(error.message || "Erreur lors de la connexion")
+      console.error("Erreur:", error)
+      toast.error(error.message || "Erreur lors de la réinitialisation")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleRegister = () => {
-    router.push("/register")
   }
 
   return (
@@ -74,9 +84,9 @@ export default function LoginPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <h2 className="text-2xl font-bold text-center mb-2">Bienvenue sur notre portail</h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Réinitialiser le mot de passe</h2>
             <p className="text-center text-muted-foreground mb-6">
-              Entrez votre numéro matricule et mot de passe pour accéder à votre compte
+              Entrez votre nouveau mot de passe
             </p>
           </motion.div>
 
@@ -88,33 +98,14 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.5 }}
           >
             <div className="space-y-2">
-              <Label htmlFor="studentId">Numéro matricule</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="studentId"
-                  name="studentId"
-                  type="text"
-                  placeholder="Entrez votre numéro matricule"
-                  className="pl-10"
-                  required
-                  value={formData.studentId}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Mot de passe</Label>
-              </div>
+              <Label htmlFor="password">Nouveau mot de passe</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Entrez votre mot de passe"
+                  placeholder="Entrez votre nouveau mot de passe"
                   className="pl-10"
                   required
                   value={formData.password}
@@ -130,17 +121,21 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember">Se souvenir de moi</Label>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirmez votre nouveau mot de passe"
+                  className="pl-10"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
               </div>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
-                Mot de passe oublié ?
-              </Link>
             </div>
 
             <Button
@@ -148,36 +143,11 @@ export default function LoginPage() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Connexion en cours..." : "Se connecter"}
+              {isLoading ? "Mise à jour en cours..." : "Mettre à jour le mot de passe"}
             </Button>
-
-            <div className="text-center text-sm">
-              Pas encore de compte ?{" "}
-              <Link
-                href="/register"
-                className="text-primary hover:underline"
-              >
-                S&apos;inscrire
-              </Link>
-            </div>
           </motion.form>
-
-          <motion.div
-            className="mt-6 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          >
-            <p className="text-sm text-muted-foreground">
-              Vous n&apos;avez pas de compte?{" "}
-              <Link href="/register" className="font-medium text-primary hover:underline">
-                S&apos;inscrire
-              </Link>
-            </p>
-          </motion.div>
         </div>
       </motion.div>
     </div>
   )
-}
-
+} 
