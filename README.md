@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Description du projet
+
+Je veux créer mon SAAS pour la gestion académique (étudiant, professeur) d'une université. L'utilisateur qui sera le professeur ou l'étudiant ou l'admin pourra se connecter à leur profil respectif (avec matricule pour les profs et les étudiants et e-mail pour l'admin). L'étudiant pourra consulter son agenda de cours, voir ses notes (effectuer des revendications qui créeront un historique d'action menée) , voir s'il est en règle (pension payée, mais ici, il sera lié à l'API de la banque) et enfin faire des requêtes en cas de besoin académique ou requête personnel (qui pourrait lancer une discussion de messagerie avec le support de l'école). Les professeurs pourront attribuer des notes aux élèves, intégrer des documents, créer des examens ou des évaluations (CC et TP), consulter la liste des étudiants. L'admin s'occupera de la configuration générale : ajout des utilisateurs (étudiants et professeurs), configuration de l'année académique, des établissements de l'université, de leur programme et de leur filière, du support et voir le journal d'activité.
 
 ## Getting Started
 
